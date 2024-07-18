@@ -1,6 +1,6 @@
 import User from '#models/user'
 import db from '@adonisjs/lucid/services/db'
-
+import env from '#start/env'
 export default class UsersService {
   async index(pagination: any) {
     const { perPage, page } = pagination
@@ -24,13 +24,14 @@ export default class UsersService {
     const { email, password } = user
     const userdb = await User.verifyCredentials(email, password)
     const accessToken = await User.accessTokens.create(userdb, [], {
-      expiresIn: 300000000,
+      expiresIn: env.get('ACCESS_TOKEN_EXPIRES_IN'),
     })
     return {
       user: {
         id: userdb.id,
         name: userdb.name,
         email: userdb.email,
+        role: userdb.role,
       },
       accessToken,
     }

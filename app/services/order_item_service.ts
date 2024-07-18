@@ -7,7 +7,14 @@ export default class OrderItemsService {
   }
 
   async createOrderItem(data: any) {
-    const orderItem = await OrderItem.create(data)
+    const orderItem = await OrderItem.create({
+      orderId: data.order_id,
+      productId: data.product_id,
+      quantity: data.quantity,
+      price: data.price,
+      name: data.name,
+      image: data.image,
+    })
     return orderItem
   }
 

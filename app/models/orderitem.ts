@@ -18,6 +18,13 @@ export default class OrderItem extends BaseModel {
 
   @column()
   declare price: number
+
+  @column()
+  declare name: string
+
+  @column()
+  declare image: string
+
   @belongsTo(() => Order)
   declare order: BelongsTo<typeof Order>
 

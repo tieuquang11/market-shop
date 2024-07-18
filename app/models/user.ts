@@ -43,7 +43,7 @@ export default class User extends compose(BaseModel, AuthFinder) {
   declare updatedAt: DateTime | null
 
   static accessTokens = JwtAccessTokenProvider.forModel(User, {
-    expiresInMillis: parseDuration('1 day')!,
+    expiresInMillis: parseDuration('7 day')!,
     key: new JwtSecret('BjBZ-s9JFJTBwUsOo1Ml-fzkCqja_byX'),
     primaryKey: 'id',
     algorithm: 'HS256',

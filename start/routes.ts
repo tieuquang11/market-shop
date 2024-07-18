@@ -77,7 +77,7 @@ router
     router.put('/orders/:id', [() => import('#controllers/orders_controller'), 'update'])
     router.delete('/orders/:id', [() => import('#controllers/orders_controller'), 'destroy'])
   })
-  // .use(middleware.auth())
+  .use(middleware.auth())
   .prefix('api/v1')
 
 router

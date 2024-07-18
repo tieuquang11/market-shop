@@ -29,8 +29,10 @@ export default class ProductsController {
     }
   }
 
-  async getAll({ response }: HttpContext) {
-    const products = await Product.query().paginate(1, 8)
+  async getAll({ request, response }: HttpContext) {
+    const page = request.input('page', 1)
+    const limit = request.input('limit', 10)
+    const products = await Product.query().paginate(page, limit)
     return response.ok(products)
   }
 
@@ -60,7 +62,7 @@ export default class ProductsController {
       return response.badRequest({ message: 'Category ID is required' })
     }
 
-    const products = await Product.query().where('category_id', categoryId).paginate(1, 8)
+    const products = await Product.query().where('category_id', categoryId).paginate(1, 10)
 
     return response.ok(products)
   }

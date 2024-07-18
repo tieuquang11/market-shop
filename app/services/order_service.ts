@@ -1,5 +1,5 @@
 import Order from '#models/order'
-
+import OrderItem from '#models/orderitem'
 export default class OrdersService {
   async getAllOrders() {
     const orders = await Order.query().preload('orderItems')
@@ -7,8 +7,24 @@ export default class OrdersService {
   }
 
   async createOrder(data: any) {
-    const order = await Order.create(data)
-    return order
+    const order = await Order.create({
+      totalAmount: data.totalAmount,
+    })
+
+    if (data.items && Array.isArray(data.items)) {
+      for (const item of data.items) {
+        await OrderItem.create({
+          orderId: order.id,
+          productId: item.product_id,
+          quantity: item.quantity,
+          price: item.price,
+          name: item.name,
+          image: item.image,
+        })
+      }
+    }
+
+    return this.getOrderById(order.id)
   }
 
   async getOrderById(id: number) {

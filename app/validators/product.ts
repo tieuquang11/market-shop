@@ -3,7 +3,7 @@ import { schema, rules } from '@adonisjs/validator'
 export const createProductValidator = schema.create({
   name: schema.string({}, [rules.required(), rules.minLength(3)]),
   description: schema.string({}, [rules.maxLength(500)]),
-  price: schema.number([rules.range(0.01, 100000)]),
+  price: schema.number([rules.range(0, 100000000)]),
   stock: schema.number([rules.range(0, 10000)]),
   category_id: schema.number([rules.range(0, 10000)]),
   image: schema.file.optional({
