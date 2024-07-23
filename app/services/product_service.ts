@@ -3,6 +3,7 @@ import Product from '#models/product'
 import { HttpContext } from '@adonisjs/core/http'
 import app from '@adonisjs/core/services/app'
 import _ from 'lodash'
+import { DateTime } from 'luxon'
 
 export default class ProductService {
   roundPrice(value: number) {
@@ -84,13 +85,12 @@ export default class ProductService {
     const page = parseInt(request.input('page', '1'))
     const limit = parseInt(request.input('limit', '10'))
 
-    console.log(`Fetching products for page ${page} with limit ${limit}`)
-
-    const products = await Product.query().preload('category').paginate(page, limit)
+    const products = await Product.query()
+      .whereNull('deletedAt')
+      .preload('category')
+      .paginate(page, limit)
 
     const paginatedData = products.toJSON()
-
-    console.log(`Found ${paginatedData.data.length} products for page ${page}`)
 
     return response.ok({
       data: paginatedData.data,
@@ -108,6 +108,20 @@ export default class ProductService {
     return response.ok({ message: 'Product deleted successfully' })
   }
 
+  async softDelete(id: number, response: HttpContext['response']) {
+    const product = await Product.findOrFail(id)
+    product.deletedAt = DateTime.local()
+    await product.save()
+    return response.ok({ message: 'Product soft deleted successfully' })
+  }
+
+  async restore(id: number, response: HttpContext['response']) {
+    const product = await Product.findOrFail(id)
+    product.deletedAt = null
+    await product.save()
+    return response.ok({ message: 'Product restored successfully' })
+  }
+
   async getByCategory(
     categoryId: number,
     request: HttpContext['request'],
@@ -122,5 +136,134 @@ export default class ProductService {
       .paginate(page, limit)
 
     return response.ok({ products })
+  }
+
+  async getUserProducts(
+    userId: number,
+    request: HttpContext['request'],
+    response: HttpContext['response']
+  ) {
+    const page = parseInt(request.input('page', '1'))
+    const limit = parseInt(request.input('limit', '10'))
+
+    const products = await Product.query()
+      .where('user_id', userId)
+      .whereNull('deletedAt')
+      .preload('category')
+      .paginate(page, limit)
+
+    const paginatedData = products.toJSON()
+
+    return response.ok({
+      data: paginatedData.data,
+      meta: {
+        ...paginatedData.meta,
+        current_page: page,
+        last_page: Math.ceil(paginatedData.meta.total / limit),
+      },
+    })
+  }
+
+  async createUserProduct(userId: number, data: any, response: HttpContext['response']) {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    const { name, description, price, stock, image, category_id } = data
+
+    const existingProduct = await Product.query()
+      .where('name', name)
+      .where('user_id', userId)
+      .first()
+    if (existingProduct) {
+      return response.badRequest({ message: 'Product name must be unique for this user' })
+    }
+
+    if (!image) {
+      return response.badRequest({ message: 'Product image is required' })
+    }
+
+    try {
+      await image.move(app.publicPath('images'), {
+        name: `${new Date().getTime()}.${image.extname}`,
+      })
+    } catch (error) {
+      return response.badRequest({ message: 'Failed to upload image' })
+    }
+
+    const imageName = image.fileName
+
+    const product = new Product()
+    product.name = name
+    product.description = description
+    product.price = this.roundPrice(price)
+    product.stock = stock
+    product.image = imageName
+    product.category_id = category_id
+    product.user_id = userId
+
+    await product.save()
+    return response.created({ message: 'Product created successfully', product })
+  }
+
+  async updateUserProduct(
+    userId: number,
+    productId: number,
+    data: any,
+    response: HttpContext['response']
+  ) {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    const { name, description, price, stock, image, category_id } = data
+
+    const product = await Product.query().where('id', productId).where('user_id', userId).first()
+
+    if (!product) {
+      return response.notFound({
+        message: 'Product not found or you do not have permission to update it',
+      })
+    }
+
+    const existingProduct = await Product.query()
+      .where('name', name)
+      .where('user_id', userId)
+      .whereNot('id', productId)
+      .first()
+
+    if (existingProduct) {
+      return response.badRequest({ message: 'Product name must be unique for this user' })
+    }
+
+    if (image) {
+      try {
+        await image.move(app.publicPath('images'), {
+          name: `${new Date().getTime()}.${image.extname}`,
+        })
+        product.image = image.fileName
+      } catch (error) {
+        return response.badRequest({ message: 'Failed to upload image' })
+      }
+    }
+
+    product.merge({
+      name,
+      description,
+      price: this.roundPrice(price),
+      stock,
+      category_id,
+    })
+
+    await product.save()
+    return response.ok({ message: 'Product updated successfully', product })
+  }
+
+  async deleteUserProduct(userId: number, productId: number, response: HttpContext['response']) {
+    const product = await Product.query().where('id', productId).where('user_id', userId).first()
+
+    if (!product) {
+      return response.notFound({
+        message: 'Product not found or you do not have permission to delete it',
+      })
+    }
+
+    product.deletedAt = DateTime.local()
+    await product.save()
+    return response.ok({ message: 'Product soft deleted successfully' })
   }
 }

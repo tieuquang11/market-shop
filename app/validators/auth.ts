@@ -12,7 +12,9 @@ export const registerValidator = vine.compile(
         return !user
       }),
     password: vine.string().trim().minLength(8),
-    // role: vine.string().in(['user', 'admin']).optional(),
+    address: vine.string().trim().minLength(0),
+    phone: vine.number(),
+    role: vine.string().in(['user', 'admin']).optional(),
   })
 )
 

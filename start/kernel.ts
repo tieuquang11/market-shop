@@ -45,7 +45,6 @@ router.use([
  * the routes or the routes group.
  */
 export const middleware = router.named({
-  sendOtp: () => import('#middleware/send_otp_middleware'),
   adminAuth: () => import('#middleware/admin_auth_middleware'),
   paginations: () => import('#middleware/paginations_middleware'),
   auth: () => import('#middleware/auth_middleware'),

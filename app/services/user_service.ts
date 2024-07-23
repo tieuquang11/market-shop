@@ -13,6 +13,9 @@ export default class UsersService {
       name: user.name,
       email: user.email,
       password: user.password,
+      address: user.address,
+      phone: user.phone,
+      role: user.role,
     })
   }
 
@@ -32,6 +35,8 @@ export default class UsersService {
         name: userdb.name,
         email: userdb.email,
         role: userdb.role,
+        address: userdb.address,
+        phone: userdb.phone,
       },
       accessToken,
     }

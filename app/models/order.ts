@@ -16,6 +16,13 @@ export default class Order extends BaseModel {
 
   @column()
   declare status: string
+
+  @column()
+  declare paymentMethod: string
+
+  @column()
+  declare shippingAddress: string
+
   @belongsTo(() => User)
   declare user: BelongsTo<typeof User>
 

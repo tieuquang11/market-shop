@@ -19,8 +19,9 @@ router
       .get('/users', [() => import('#controllers/userpaginations_controller'), 'index'])
       .use(middleware.paginations())
     router.post('/login', [() => import('#controllers/users_controller'), 'login'])
-    router.get('/profile', [() => import('#controllers/users_controller'), 'profile'])
-    // .use(middleware.auth())
+    router
+      .get('/profile', [() => import('#controllers/users_controller'), 'profile'])
+      .use(middleware.auth())
     router
       .get('/home', async (ctx) => {
         return ctx.auth.use('api').user
@@ -31,9 +32,10 @@ router
 
 router
   .group(() => {
-    router.post('/products', [() => import('#controllers/products_controller'), 'create'])
-    // .use(middleware.auth())
-    // .use(middleware.adminAuth())
+    router
+      .post('/products', [() => import('#controllers/products_controller'), 'create'])
+      .use(middleware.auth())
+      .use(middleware.adminAuth())
     router.put('/products/:id', [() => import('#controllers/products_controller'), 'update'])
     router.get('/products', [() => import('#controllers/products_controller'), 'getAll'])
     router.delete('/products/:id', [() => import('#controllers/products_controller'), 'delete'])
@@ -47,16 +49,6 @@ router
 
 router
   .group(() => {
-    router.post('/cartitems', [() => import('#controllers/cartitems_controller'), 'create'])
-    router.put('/cartitems/:id', [() => import('#controllers/cartitems_controller'), 'update'])
-    router.get('/cartitems', [() => import('#controllers/cartitems_controller'), 'getAll'])
-    router.delete('/cartitems/:id', [() => import('#controllers/cartitems_controller'), 'delete'])
-  })
-  .use(middleware.auth())
-  .prefix('api/v1')
-
-router
-  .group(() => {
     router.get('/categories', [() => import('#controllers/categories_controller'), 'index'])
     router.post('/categories', [() => import('#controllers/categories_controller'), 'store'])
     router.get('/categories/:id', [() => import('#controllers/categories_controller'), 'show'])
@@ -66,7 +58,6 @@ router
       'destroy',
     ])
   })
-  // .use(middleware.auth())
   .prefix('api/v1')
 
 router
@@ -76,6 +67,14 @@ router
     router.get('/orders/:id', [() => import('#controllers/orders_controller'), 'show'])
     router.put('/orders/:id', [() => import('#controllers/orders_controller'), 'update'])
     router.delete('/orders/:id', [() => import('#controllers/orders_controller'), 'destroy'])
+    router.post('/orders/:id/process-payment', [
+      () => import('#controllers/orders_controller'),
+      'processPayment',
+    ])
+    router.post('/products/:id/restore', [
+      () => import('#controllers/products_controller'),
+      'restore',
+    ])
   })
   .use(middleware.auth())
   .prefix('api/v1')
@@ -91,5 +90,27 @@ router
       'destroy',
     ])
   })
-  // .use(middleware.auth())
+  .use(middleware.auth())
+  .prefix('api/v1')
+
+router
+  .group(() => {
+    router.get('/user/products', [
+      () => import('#controllers/products_controller'),
+      'getUserProducts',
+    ])
+    router.post('/user/products', [
+      () => import('#controllers/products_controller'),
+      'createUserProduct',
+    ])
+    router.put('/user/products/:id', [
+      () => import('#controllers/products_controller'),
+      'updateUserProduct',
+    ])
+    router.delete('/user/products/:id', [
+      () => import('#controllers/products_controller'),
+      'deleteUserProduct',
+    ])
+  })
+  .use(middleware.auth())
   .prefix('api/v1')

@@ -1,6 +1,8 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Order from '#models/order'
 import OrderItem from '#models/orderitem'
+import PaymentService from '#services/payment_service'
+
 export default class OrdersController {
   async index({}: HttpContext) {
     const orders = await Order.query().preload('orderItems')
@@ -12,10 +14,15 @@ export default class OrdersController {
       return response.unauthorized('Bạn cần đăng nhập để tạo đơn hàng')
     }
 
-    const { items, totalAmount } = request.only(['items', 'totalAmount'])
+    const { items, totalAmount, paymentMethod, shippingAddress } = request.only([
+      'items',
+      'totalAmount',
+      'paymentMethod',
+      'shippingAddress',
+    ])
     const userId = auth.user.id
 
-    if (!items || !totalAmount) {
+    if (!items || !totalAmount || !paymentMethod || !shippingAddress) {
       return response.badRequest('Thiếu thông tin đơn hàng')
     }
 
@@ -24,6 +31,8 @@ export default class OrdersController {
         userId,
         totalAmount,
         status: 'pending',
+        paymentMethod,
+        shippingAddress,
       })
 
       for (const item of items) {
@@ -63,5 +72,35 @@ export default class OrdersController {
     const order = await Order.findOrFail(params.id)
     await order.delete()
     return { message: 'Order deleted successfully' }
+  }
+
+  async processPayment({ params, request, response }: HttpContext) {
+    const { paymentMethod } = request.only(['paymentMethod'])
+    const orderId = params.id
+    const paymentService = new PaymentService()
+
+    try {
+      const order = await Order.findOrFail(orderId)
+      const paymentResult = await paymentService.processPayment(
+        orderId,
+        paymentMethod,
+        order.totalAmount
+      )
+
+      if (paymentResult.success) {
+        order.status = 'paid'
+        order.paymentMethod = paymentMethod
+        await order.save()
+        return response.ok({
+          message: 'Thanh toán thành công',
+          transactionId: paymentResult.transactionId,
+        })
+      } else {
+        return response.badRequest({ message: 'Thanh toán thất bại' })
+      }
+    } catch (error) {
+      console.error('Lỗi xử lý thanh toán:', error)
+      return response.internalServerError({ message: 'Lỗi server nội bộ' })
+    }
   }
 }

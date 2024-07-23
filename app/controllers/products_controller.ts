@@ -30,16 +30,32 @@ export default class ProductsController {
   }
 
   async getAll({ request, response }: HttpContext) {
-    const page = request.input('page', 1)
-    const limit = request.input('limit', 10)
-    const products = await Product.query().paginate(page, limit)
-    return response.ok(products)
+    const productService = new ProductService()
+    return await productService.getAll(request, response)
   }
 
   async delete({ params, response }: HttpContext) {
-    const product = await Product.findOrFail(params.id)
-    await product.delete()
-    return response.ok({ message: 'Product deleted successfully' })
+    try {
+      const productService = new ProductService()
+      return await productService.softDelete(params.id, response)
+    } catch (error) {
+      console.error(error)
+      return response.internalServerError({
+        message: 'An error occurred while deleting the product',
+      })
+    }
+  }
+
+  async restore({ params, response }: HttpContext) {
+    try {
+      const productService = new ProductService()
+      return await productService.restore(params.id, response)
+    } catch (error) {
+      console.error(error)
+      return response.internalServerError({
+        message: 'An error occurred while restoring the product',
+      })
+    }
   }
 
   async search({ request, response }: HttpContext) {
@@ -49,6 +65,7 @@ export default class ProductsController {
     }
 
     const products = await Product.query()
+      .whereNull('deletedAt')
       .where('name', 'LIKE', `%${query}%`)
       .orWhere('description', 'LIKE', `%${query}%`)
       .paginate(1, 10)
@@ -62,8 +79,62 @@ export default class ProductsController {
       return response.badRequest({ message: 'Category ID is required' })
     }
 
-    const products = await Product.query().where('category_id', categoryId).paginate(1, 10)
+    const products = await Product.query()
+      .whereNull('deletedAt')
+      .where('category_id', categoryId)
+      .paginate(1, 10)
 
     return response.ok(products)
+  }
+
+  async getUserProducts({ auth, request, response }: HttpContext) {
+    const user = auth.user!
+    const productService = new ProductService()
+    return await productService.getUserProducts(user.id, request, response)
+  }
+
+  async createUserProduct({ auth, request, response }: HttpContext) {
+    try {
+      const user = auth.user!
+      const validatedData = await request.validate({
+        schema: createProductValidator,
+        messages: validationMessages,
+      })
+      return await new ProductService().createUserProduct(user.id, validatedData, response)
+    } catch (error) {
+      console.error(error)
+      return response.badRequest(error.messages)
+    }
+  }
+
+  async updateUserProduct({ auth, params, request, response }: HttpContext) {
+    try {
+      const user = auth.user!
+      const validatedData = await request.validate({
+        schema: createProductValidator,
+        messages: validationMessages,
+      })
+      return await new ProductService().updateUserProduct(
+        user.id,
+        params.id,
+        validatedData,
+        response
+      )
+    } catch (error) {
+      return response.badRequest(error.messages)
+    }
+  }
+
+  async deleteUserProduct({ auth, params, response }: HttpContext) {
+    try {
+      const user = auth.user!
+      const productService = new ProductService()
+      return await productService.deleteUserProduct(user.id, params.id, response)
+    } catch (error) {
+      console.error(error)
+      return response.internalServerError({
+        message: 'An error occurred while deleting the product',
+      })
+    }
   }
 }

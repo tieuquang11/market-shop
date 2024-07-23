@@ -9,6 +9,9 @@ export default class OrdersService {
   async createOrder(data: any) {
     const order = await Order.create({
       totalAmount: data.totalAmount,
+      paymentMethod: data.paymentMethod,
+      shippingAddress: data.shippingAddress,
+      status: 'pending',
     })
 
     if (data.items && Array.isArray(data.items)) {
@@ -28,7 +31,11 @@ export default class OrdersService {
   }
 
   async getOrderById(id: number) {
-    const order = await Order.query().where('id', id).preload('orderItems').firstOrFail()
+    const order = await Order.query()
+      .where('id', id)
+      .preload('orderItems')
+      .preload('user')
+      .firstOrFail()
     return order
   }
 
