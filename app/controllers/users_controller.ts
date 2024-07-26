@@ -10,7 +10,7 @@ export default class AuthController {
     try {
       const data = request.body()
       const payload = await registerValidator.validate(data)
-      console.log('register', data)
+      // console.log('register', data)
       return await this.userService.store(payload)
     } catch (error) {
       console.log(error)
@@ -23,7 +23,7 @@ export default class AuthController {
     try {
       const data = request.body()
       const payload = await loginValidator.validate(data)
-      console.log('login', data)
+      // console.log('login', data)
       return await this.userService.login(payload)
     } catch (error) {
       console.error('Login error:', error)
