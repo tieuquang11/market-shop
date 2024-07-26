@@ -34,6 +34,7 @@ export default class HttpExceptionHandler extends ExceptionHandler {
    * response to the client
    */
   async handle(error: unknown, ctx: HttpContext) {
+    console.log('Handling error:', error)
     return super.handle(error, ctx)
   }
 
@@ -44,6 +45,7 @@ export default class HttpExceptionHandler extends ExceptionHandler {
    * @note You should not attempt to send a response from this method.
    */
   async report(error: unknown, ctx: HttpContext) {
+    console.log('Reporting error:', error)
     return super.report(error, ctx)
   }
 }
