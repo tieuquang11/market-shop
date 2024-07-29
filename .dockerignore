@@ -3,3 +3,6 @@ node_modules
 npm-debug.log
 .git
 .vscode
+node_modules
+Dockerfile
+docker-compose.yml

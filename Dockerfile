@@ -1,27 +1,26 @@
-FROM node:20-alpine
+# Stage 1: Base image
+FROM node:20.12.2-alpine3.18 as base
 
+# Stage 2: Dependencies
+FROM base as deps
 WORKDIR /app
-
-# Sao chép package.json và package-lock.json
 COPY package*.json ./
+RUN npm ci
 
-# Cài đặt dependencies sử dụng npm install thay vì npm ci
-RUN npm install
-
-# Sao chép toàn bộ source code
+# Stage 3: Build
+FROM deps as build
+WORKDIR /app
 COPY . .
+RUN node ace build --production
 
-# Chạy lệnh build
-RUN npm run build
-
-# Chuyển đến thư mục build
-WORKDIR /app/build
-
-# Cài đặt dependencies cho production, bỏ qua devDependencies
-RUN npm install --only=production
-
-# Expose port mà ứng dụng sẽ chạy
+# Stage 4: Production
+FROM base
+ENV NODE_ENV=production
+ENV PORT=3333
+ENV HOST=0.0.0.0
+WORKDIR /app
+COPY --from=deps /app/node_modules /app/node_modules
+COPY --from=build /app/build /app
+COPY .env /app/.env
 EXPOSE 3333
-
-# Chạy ứng dụng
-CMD ["node", "bin/server.js"]
+CMD ["node", "server.js"]
