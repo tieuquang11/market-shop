@@ -20,4 +20,4 @@ ENV NODE_ENV=production
 COPY --from=build /app /app
 COPY --from=deps /app/node_modules /app/node_modules
 EXPOSE 3333
-CMD ["node", "build/server.js"]
+CMD ["node", "build/bin/server.js"]
