@@ -1,36 +1,23 @@
-# Stage 1: Build
-FROM node:20-alpine as builder
-
-# Set working directory
+# Stage 1: Base image
+FROM node:20.12.2-alpine3.18 as base
 WORKDIR /app
+COPY package.json package-lock.json ./
 
-# Install dependencies
-COPY package*.json ./
-
+# Stage 2: Install dependencies
+FROM base as deps
 RUN npm install
 
-# Copy source files
+# Stage 3: Build the application
+FROM base as build
+COPY --from=deps /app/node_modules /app/node_modules
 COPY . .
-
-# Build the project
 RUN npm run build
 
-# Stage 2: Production
-FROM node:20-alpine
-
-# Set working directory
+# Stage 4: Production image
+FROM node:20.12.2-alpine3.18
 WORKDIR /app
-
-# Copy only the necessary files from the build stage
-COPY --from=builder /app/build /app/build 
-COPY --from=builder /app/package*.json /app/build  
-
-WORKDIR /app/build
-
-RUN npm install --production
-# Expose port
+ENV NODE_ENV=production
+COPY --from=build /app /app
+COPY --from=deps /app/node_modules /app/node_modules
 EXPOSE 3333
-
-# Start the server
-# CMD ["node", "bin/server.js"]
-CMD ["sh", "-c", "node ace migration:run --force && node bin/server.js"]
+CMD ["node", "build/server.js"]
