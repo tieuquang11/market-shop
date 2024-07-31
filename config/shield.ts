@@ -19,7 +19,7 @@ const shieldConfig = defineConfig({
     enabled: false,
     exceptRoutes: [],
     enableXsrfCookie: false,
-    methods: ['POST', 'PUT', 'PATCH', 'DELETE'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   },
 
   /**
