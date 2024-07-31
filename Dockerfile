@@ -20,4 +20,4 @@ ENV NODE_ENV=production
 COPY --from=build /app /app
 COPY --from=deps /app/node_modules /app/node_modules
 EXPOSE 3333
-CMD ["node", "build/bin/server.js"]
+CMD ["sh", "-c", "node ace migration:run --force && node build/bin/server.js"]
