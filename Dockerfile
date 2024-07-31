@@ -4,7 +4,7 @@ FROM node:20.12.2-alpine3.18 as base
 FROM base as deps
 WORKDIR /app
 ADD package.json package-lock.json ./
-RUN npm ci
+RUN npm install
 
 # Production only deps stage
 FROM base as production-deps
