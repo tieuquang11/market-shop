@@ -1,28 +1,36 @@
-# Stage 1: Base image
-FROM node:20.12.2-alpine3.18 as base
-WORKDIR /app
-RUN apk add --no-cache libc6-compat
-COPY package.json package-lock.json ./
+# Stage 1: Build
+FROM node:20-alpine as builder
 
-# Stage 2: Install dependencies
-FROM base as deps
+# Set working directory
+WORKDIR /app
+
+# Install dependencies
+COPY package*.json ./
+
 RUN npm install
 
-# Stage 3: Install production dependencies
-FROM base as production-deps
-RUN npm ci --omit=dev
-
-# Stage 4: Build the application
-FROM base as build
-COPY --from=deps /app/node_modules /app/node_modules
+# Copy source files
 COPY . .
+
+# Build the project
 RUN npm run build
 
-# Stage 5: Production image
-FROM node:20.12.2-alpine3.18
+# Stage 2: Production
+FROM node:20-alpine
+
+# Set working directory
 WORKDIR /app
-ENV NODE_ENV=production
-COPY --from=production-deps /app/node_modules /app/node_modules
-COPY --from=build /app /app
+
+# Copy only the necessary files from the build stage
+COPY --from=builder /app/build /app/build 
+COPY --from=builder /app/package*.json /app/build  
+
+WORKDIR /app/build
+
+RUN npm install --production
+# Expose port
 EXPOSE 3333
-CMD ["node", "build/server.js"]
+
+# Start the server
+# CMD ["node", "bin/server.js"]
+CMD ["sh", "-c", "node ace migration:run --force && node bin/server.js"]
