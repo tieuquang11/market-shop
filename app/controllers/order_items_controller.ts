@@ -1,8 +1,8 @@
+import OrderItemsService from '#services/order_item_service'
 import type { HttpContext } from '@adonisjs/core/http'
-import OrderItem from '#models/orderitem'
 
 export default class OrderItemsController {
-  constructor(protected orderItemsService: OrderItem) {}
+  constructor(protected orderItemsService: OrderItemsService) {}
 
   async index({}: HttpContext) {
     const orderItems = await this.orderItemsService.getAllOrderItems()
