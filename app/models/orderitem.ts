@@ -5,6 +5,19 @@ import Order from '#models/order'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 
 export default class OrderItem extends BaseModel {
+  deleteOrderItem(id: any) {
+    throw new Error('Method not implemented.')
+  }
+  updateOrderItem: any
+  getOrderItemById(id: any) {
+    throw new Error('Method not implemented.')
+  }
+  createOrderItem(arg0: { image: import("@adonisjs/bodyparser").MultipartFile | null; order_id: any; product_id: any; quantity: any; price: any; name: any }) {
+    throw new Error('Method not implemented.')
+  }
+  getAllOrderItems() {
+    throw new Error('Method not implemented.')
+  }
   @column({ isPrimary: true })
   declare id: number
   @column()

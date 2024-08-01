@@ -2,33 +2,42 @@ import type { HttpContext } from '@adonisjs/core/http'
 import OrderItem from '#models/orderitem'
 
 export default class OrderItemsController {
+  constructor(protected orderItemsService: OrderItem) {}
+
   async index({}: HttpContext) {
-    const orderItems = await OrderItem.all()
+    const orderItems = await this.orderItemsService.getAllOrderItems()
     return orderItems
   }
 
   async store({ request }: HttpContext) {
-    const data = request.only(['order_id', 'product_id', 'quantity', 'price'])
-    const orderItem = await OrderItem.create(data)
+    const data = request.only(['order_id', 'product_id', 'quantity', 'price', 'name'])
+    const image = request.file('image')
+
+    const orderItem = await this.orderItemsService.createOrderItem({
+      ...data,
+      image: image,
+    })
     return orderItem
   }
 
   async show({ params }: HttpContext) {
-    const orderItem = await OrderItem.findOrFail(params.id)
+    const orderItem = await this.orderItemsService.getOrderItemById(params.id)
     return orderItem
   }
 
   async update({ params, request }: HttpContext) {
-    const data = request.only(['order_id', 'product_id', 'quantity', 'price'])
-    const orderItem = await OrderItem.findOrFail(params.id)
-    orderItem.merge(data)
-    await orderItem.save()
+    const data = request.only(['order_id', 'product_id', 'quantity', 'price', 'name'])
+    const image = request.file('image')
+
+    const orderItem = await this.orderItemsService.updateOrderItem(params.id, {
+      ...data,
+      image: image,
+    })
     return orderItem
   }
 
   async destroy({ params }: HttpContext) {
-    const orderItem = await OrderItem.findOrFail(params.id)
-    await orderItem.delete()
-    return { message: 'Order item deleted successfully' }
+    const result = await this.orderItemsService.deleteOrderItem(params.id)
+    return result
   }
 }

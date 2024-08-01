@@ -20,7 +20,7 @@ export default class Product extends BaseModel {
   declare stock: number
 
   @column()
-  declare image: string | null
+  declare image: string
 
   @column()
   declare category_id: number

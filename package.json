@@ -57,6 +57,7 @@
   },
   "dependencies": {
     "@adonisjs/auth": "^9.2.3",
+    "@adonisjs/bodyparser": "^10.0.2",
     "@adonisjs/core": "^6.12.1",
     "@adonisjs/cors": "^2.2.1",
     "@adonisjs/env": "^6.1.0",
@@ -67,6 +68,7 @@
     "@adonisjs/validator": "^13.0.2",
     "@adonisjs/vite": "^3.0.0",
     "@vinejs/vine": "^2.1.0",
+    "cloudinary": "^2.4.0",
     "edge.js": "^6.0.2",
     "jsonwebtoken": "^9.0.2",
     "luxon": "^3.4.4",

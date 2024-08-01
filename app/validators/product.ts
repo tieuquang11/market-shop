@@ -6,10 +6,10 @@ export const createProductValidator = schema.create({
   price: schema.number([rules.range(0, 100000000)]),
   stock: schema.number([rules.range(0, 10000)]),
   category_id: schema.number([rules.range(0, 10000)]),
-  image: schema.file.optional({
-    size: '10mb',
-    extnames: ['jpg', 'png', 'jpeg', 'jfif', 'gif'],
-  }),
+  // image: schema.file.optional({
+  //   size: '10mb',
+  //   extnames: ['jpg', 'png', 'jpeg', 'jfif', 'gif'],
+  // }),
 })
 
 export const validationMessages = {

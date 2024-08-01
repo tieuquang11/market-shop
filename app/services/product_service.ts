@@ -1,14 +1,20 @@
-/* eslint-disable unicorn/prefer-number-properties */
+import cloudinary from '#config/cloudinary'
 import Product from '#models/product'
 import { HttpContext } from '@adonisjs/core/http'
-import app from '@adonisjs/core/services/app'
-import _ from 'lodash'
 import { DateTime } from 'luxon'
 
 export default class ProductService {
   roundPrice(value: number) {
     return Math.round(value)
   }
+
+  async uploadToCloudinary(file: any) {
+    const result = await cloudinary.uploader.upload(file.tmpPath, {
+      folder: 'products',
+    })
+    return result.secure_url
+  }
+
   async create(data: any, response: HttpContext['response']) {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     const { name, description, price, stock, image, category_id } = data
@@ -23,25 +29,22 @@ export default class ProductService {
     }
 
     try {
-      await image.move(app.publicPath('images'), {
-        name: `${new Date().getTime()}.${image.extname}`,
-      })
+      const imageUrl = await this.uploadToCloudinary(image)
+
+      const product = new Product()
+      product.name = name
+      product.description = description
+      product.price = this.roundPrice(price)
+      product.stock = stock
+      product.image = imageUrl
+      product.category_id = category_id
+
+      await product.save()
+      return response.created({ message: 'Product created successfully', product })
     } catch (error) {
+      console.error(error)
       return response.badRequest({ message: 'Failed to upload image' })
     }
-
-    const imageName = image.fileName
-
-    const product = new Product()
-    product.name = name
-    product.description = description
-    product.price = this.roundPrice(price)
-    product.stock = stock
-    product.image = imageName
-    product.category_id = category_id
-
-    await product.save()
-    return response.created({ message: 'Product created successfully', product })
   }
 
   async update(id: number, data: any, response: HttpContext['response']) {
@@ -60,10 +63,8 @@ export default class ProductService {
 
     if (image) {
       try {
-        await image.move(app.publicPath('images'), {
-          name: `${new Date().getTime()}.${image.extname}`,
-        })
-        product.image = image.fileName
+        const imageUrl = await this.uploadToCloudinary(image)
+        product.image = imageUrl
       } catch (error) {
         return response.badRequest({ message: 'Failed to upload image' })
       }
@@ -82,8 +83,8 @@ export default class ProductService {
   }
 
   async getAll(request: HttpContext['request'], response: HttpContext['response']) {
-    const page = parseInt(request.input('page', '1'))
-    const limit = parseInt(request.input('limit', '10'))
+    const page = Number.parseInt(request.input('page', '1'))
+    const limit = Number.parseInt(request.input('limit', '10'))
 
     const products = await Product.query()
       .whereNull('deletedAt')
@@ -143,8 +144,8 @@ export default class ProductService {
     request: HttpContext['request'],
     response: HttpContext['response']
   ) {
-    const page = parseInt(request.input('page', '1'))
-    const limit = parseInt(request.input('limit', '10'))
+    const page = Number.parseInt(request.input('page', '1'))
+    const limit = Number.parseInt(request.input('limit', '10'))
 
     const products = await Product.query()
       .where('user_id', userId)
@@ -181,26 +182,23 @@ export default class ProductService {
     }
 
     try {
-      await image.move(app.publicPath('images'), {
-        name: `${new Date().getTime()}.${image.extname}`,
-      })
+      const imageUrl = await this.uploadToCloudinary(image)
+
+      const product = new Product()
+      product.name = name
+      product.description = description
+      product.price = this.roundPrice(price)
+      product.stock = stock
+      product.image = imageUrl
+      product.category_id = category_id
+      product.user_id = userId
+
+      await product.save()
+      return response.created({ message: 'Product created successfully', product })
     } catch (error) {
+      console.error(error)
       return response.badRequest({ message: 'Failed to upload image' })
     }
-
-    const imageName = image.fileName
-
-    const product = new Product()
-    product.name = name
-    product.description = description
-    product.price = this.roundPrice(price)
-    product.stock = stock
-    product.image = imageName
-    product.category_id = category_id
-    product.user_id = userId
-
-    await product.save()
-    return response.created({ message: 'Product created successfully', product })
   }
 
   async updateUserProduct(
@@ -232,10 +230,8 @@ export default class ProductService {
 
     if (image) {
       try {
-        await image.move(app.publicPath('images'), {
-          name: `${new Date().getTime()}.${image.extname}`,
-        })
-        product.image = image.fileName
+        const imageUrl = await this.uploadToCloudinary(image)
+        product.image = imageUrl
       } catch (error) {
         return response.badRequest({ message: 'Failed to upload image' })
       }
