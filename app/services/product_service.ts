@@ -129,9 +129,10 @@ export default class ProductService {
     response: HttpContext['response']
   ) {
     const page = request.input('page', 1)
-    const limit = request.input('limit', 5)
+    const limit = request.input('limit', 10)
 
     const products = await Product.query()
+      .whereNull('deletedAt')
       .where('category_id', categoryId)
       .preload('category')
       .paginate(page, limit)
