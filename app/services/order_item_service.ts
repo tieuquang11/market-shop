@@ -48,10 +48,10 @@ export default class OrderItemsService {
         })
         data.image = result.secure_url
 
-        // Tùy chọn: Xóa ảnh cũ trên Cloudinary
+        // //xóa ảnh cũ cloubirany
         // if (orderItem.image) {
-        //   const publicId = this.getPublicIdFromUrl(orderItem.image);
-        //   await cloudinary.uploader.destroy(publicId);
+        //   const publicId = this.getPublicIdFromUrl(orderItem.image)
+        //   await cloudinary.uploader.destroy(publicId)
         // }
       } catch (error) {
         console.error('Error uploading image to Cloudinary:', error)
@@ -67,7 +67,6 @@ export default class OrderItemsService {
   async deleteOrderItem(id: number) {
     const orderItem = await OrderItem.findOrFail(id)
 
-    // Tùy chọn: Xóa ảnh trên Cloudinary khi xóa order item
     if (orderItem.image) {
       const publicId = this.getPublicIdFromUrl(orderItem.image)
       await cloudinary.uploader.destroy(publicId)
@@ -77,7 +76,6 @@ export default class OrderItemsService {
     return { message: 'Order item deleted successfully' }
   }
 
-  // Phương thức hỗ trợ để lấy public_id từ URL Cloudinary
   private getPublicIdFromUrl(url: string): string {
     const parts = url.split('/')
     const filename = parts[parts.length - 1]

@@ -9,7 +9,7 @@ type ValidatedData = {
   price: number
   stock: number
   category_id: number
-  image?: any // Thêm thuộc tính image
+  image?: any
 }
 
 export default class ProductsController {
